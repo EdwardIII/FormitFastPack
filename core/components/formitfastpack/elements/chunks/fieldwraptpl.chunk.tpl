@@ -1,4 +1,4 @@
-﻿<!-- default -->
+<!-- default -->
 <div class="[[+outer_class]]" id="[[+name]]_wrap">
 <label for="[[+name]]" title="[[+name:replace=`_== `:ucwords]]">[[+label:default=`[[+name:replace=`_== `:ucwords]]`]][[+req:notempty=` *`]]</label>
 [[+inner_html]]
