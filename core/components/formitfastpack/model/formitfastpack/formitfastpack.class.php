@@ -34,14 +34,16 @@ class FormitFastPack {
      */
     public $modx = null;
     /**
+     * A collection of properties to adjust FormitFastPack behaviour.
      * @access public
-     * @var array FormitFastPack config array
+     * @var array
      */
     public $config = array();
 
     /**
+     * The original FormitFastPack defaults.
      * @access public
-     * @var array A collection of properties to adjust FormitFastPack behaviour.
+     * @var array 
      */
     public $defaults = array();
 
@@ -62,14 +64,15 @@ class FormitFastPack {
         $assetsPath = $this->modx->getOption('ffp.assets_path',null,$modx->getOption('assets_path').'components/formitfastpack/');
         $assetsUrl = $this->modx->getOption('ffp.assets_url',null,$modx->getOption('assets_url').'components/formitfastpack/');
 
-        $this->config = array_merge(array(
+        $this->defaults = array(
             'core_path' => $corePath,
             'model_path' => $corePath.'model/',
             'processors_path' => $corePath.'processors/',
             'controllers_path' => $corePath.'controllers/',
             'chunks_path' => $corePath.'elements/chunks/',
             'snippets_path' => $corePath.'elements/snippets/'
-        ),$config);
+        );
+        $this->config = $this->defaults;
 
         /* load debugging settings */
         if ($this->modx->getOption('debug',$this->config,false)) {
@@ -96,8 +99,8 @@ class FormitFastPack {
      * @param array $config The configuration array.
      * @return bool Success.
      */
-    public function setConfig(array $defaults = array()) {
-        $this->defaults = array_merge($this->defaults,$defaults);
+    public function setConfig(array $newdefaults = array()) {
+        $this->config = array_merge($this->config,$newdefaults);
         return true;
     }
     
@@ -109,7 +112,7 @@ class FormitFastPack {
      * @return array The configuration array.
      */
     public function getConfig() {
-        return $this->defaults;
+        return (array) $this->config;
     }
 
     /**

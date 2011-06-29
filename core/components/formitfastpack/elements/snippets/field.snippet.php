@@ -80,13 +80,14 @@ $ffp = $modx->getService('formitfastpack','FormitFastPack',$modx->getOption('ffp
 if (!($ffp instanceof FormitFastPack)) return 'Package not found.';
 
 // load defaults
-$config = array_merge($ffp->getConfig(),$scriptProperties);
+$global_defaults = $ffp->getConfig();
+$config = array_merge($global_defaults,$scriptProperties);
 
 // Important properties
 $name = $modx->getOption('name',$config,'');
 $type = $modx->getOption('type',$config,'text');
 $prefix = $modx->getOption('prefix',$config,'fi.');
-$error_prefix = $modx->getOption('error_prefix',$config,'');
+$error_prefix = $modx->getOption('error_prefix',$config,$prefix.'error.');
 $key_prefix = $modx->getOption('key_prefix',$config,'');
 
 // delimiter each field type is bordered by. 
@@ -112,16 +113,16 @@ if (empty($inner_static)) {
 $inner_static['default'] = isset($inner_static['default']) ? $inner_static['default'] : array('option_tpl' => '','selected_text' => ' checked="checked" selected="selected"');
 $default_option_tpl = isset($inner_static[$type]['option_tpl']) ? $inner_static[$type]['option_tpl'] : $inner_static['default']['option_tpl'];
 $default_selected_text = isset($inner_static[$type]['selected_text']) ? $inner_static[$type]['selected_text'] : $inner_static['default']['selected_text'];
-
 // Allow overriding the default settings for types from the script properties
 $selected_text = $modx->getOption('selected_text',$config, '');
-$selected_text = $selected_text ? $selected_text : $default_selected_text;
+$selected_text = !empty($selected_text) ? $selected_text : $default_selected_text;
 
 /*      CACHING         */
 // See if caching is set system-wide or in the scriptProperties
-$cache = $modx->getOption('cache',$config,$modx->getOption('ffp.field_default_cache',null,2));
+$cache = $modx->getOption('cache',$config,$modx->getOption('ffp.field_default_cache'));
 // By default, only cache elements that have options.
 $cache = isset($cache) ? $cache : array_key_exists($type,$inner_static) || $modx->getOption('options',$config,false)  || $modx->getOption('options_element',$config,false) || $modx->getOption('inner_element',$config,false);
+$cache ? $cache : 0;
 $already_cached = false;
 if ($cache) {
     $cache = ($cache == 2 || strtolower($cache) == 'level 2') ? 2 : 1;
@@ -184,10 +185,9 @@ if (!$cache || !$already_cached) {
         }
     }
 }
-
 // Parse options for checkboxes, radios, etc... if &options is passed
 // Note: if cached or overriden options_html has been found, this part will be skipped
-if ($options && !$options_html) {
+if ($options && empty($options_html)) {
     $option_tpl = $modx->getOption('option_type',$config, '');
     $option_tpl = $option_tpl ? $option_tpl : $default_option_tpl;
     $options_delimiter = '||';
@@ -195,6 +195,7 @@ if ($options && !$options_html) {
     $options_inner_delimiter = '==';
     $options_html = '';
     $options = explode($options_delimiter,$options);
+
     foreach ($options as $option) {
         $option_array =  explode($options_inner_delimiter,$option);
         foreach ($option_array as $key => $value) {
@@ -206,35 +207,48 @@ if ($options && !$options_html) {
         $inner_array['key'] = $placeholders['key'].'-'.preg_replace("/[^a-zA-Z0-9-\s]/", "", $inner_array['value']);
         $options_html .= $ffp->getChunk($tpl,$inner_array,$inner_delimiter);
     }
-} else {
-    $options_html = '';
 }
 
 // cache everything up to this point if cache is enabled and not set to level 2
 $cached = array('options_html' => $options_html,'inner_html' => $inner_html,'placeholders' => $placeholders, 'cached_output' => null);
 
-
-// Grab the error and current value from FormIt placeholders
-$error_prefix = $error_prefix ? $error_prefix : $prefix.'error.';
-$error = $modx->getPlaceholder($error_prefix.$name);
-$current_value = $modx->getPlaceholder($prefix.$name);
-// Add selected markers to options - much faster than FormItIsSelected and FormItIsChecked for large forms
-if ($options_html && $selected_text && $modx->getOption('mark_selected',$config,true)) {
-    $options_html = $ffp->markSelected($options_html,$current_value,$selected_text);
+// Set the error, current value, and options_html placeholders.
+// always true... for now.
+if ('0' == 0) {
+    // Add selected markers to options - much faster than FormItIsSelected and FormItIsChecked for large forms
+    $options_html = isset($options_html) ? $options_html : '';
+    if (!empty($options_html) && $selected_text && $modx->getOption('mark_selected',$config,true)) {
+        $current_value = $modx->getPlaceholder($prefix.$name);
+        $options_html = $ffp->markSelected($options_html,$current_value,$selected_text);
+    }
+    $dynamic_placeholders['error'] = '[[!+'.$error_prefix.$name.']]';
+    $dynamic_placeholders['current_value'] = '[[!+'.$prefix.$name.']]';
+    $dynamic_placeholders['options_html'] = $options_html;
+    // $dynamic_placeholders['error_class'] =  '[[+'.$error_prefix.':notempty=`'$modx->getOption('error_class',$config,'error').'`]]';
+    // $dynamic_placeholders['current_value_class'] =  empty($current_value) ? '' : ' '.$modx->getOption('current_value_class',$config,'current_value');
+    // $dynamic_placeholders['options_html_class'] =  empty($options_html) ? '' : ' '.$modx->getOption('options_html_class',$config,'options_html');
+} else {
+    // Grab the error and current value from FormIt placeholders
+    $error_prefix = $error_prefix ? $error_prefix : $prefix.'error.';
+    $error = $modx->getPlaceholder($error_prefix.$name);
+    $current_value = $modx->getPlaceholder($prefix.$name);
+    // Add selected markers to options - much faster than FormItIsSelected and FormItIsChecked for large forms
+    if ($options_html && $selected_text && $modx->getOption('mark_selected',$config,true)) {
+        $options_html = $ffp->markSelected($options_html,$current_value,$selected_text);
+    }
+    $dynamic_placeholders['error'] = empty($error) ? '' : $error;
+    $dynamic_placeholders['error_class'] =  empty($error) ? '' : ' '.$modx->getOption('error_class',$config,'error');
+    $dynamic_placeholders['current_value'] = empty($current_value) ? '' : $current_value; // ToDo: add better caching and take this out to a str_replace function.
+    $dynamic_placeholders['current_value_class'] =  empty($current_value) ? '' : ' '.$modx->getOption('current_value_class',$config,'current_value');
+    $dynamic_placeholders['options_html'] = empty($options_html) ? '' : $options_html;
+    $dynamic_placeholders['options_html_class'] =  empty($options_html) ? '' : ' '.$modx->getOption('options_html_class',$config,'options_html');
 }
 
-// Set the error, current value, and options_html placeholders.
-$dynamic_placeholders['error'] = empty($error) ? '' : $error;
-$dynamic_placeholders['error_class'] =  empty($error) ? '' : ' '.$modx->getOption('error_class',$config,'error');
-$dynamic_placeholders['current_value'] = empty($current_value) ? '' : $current_value; // ToDo: add better caching and take this out to a str_replace function.
-$dynamic_placeholders['current_value_class'] =  empty($current_value) ? '' : ' '.$modx->getOption('current_value_class',$config,'current_value');
-$dynamic_placeholders['options_html'] = empty($options_html) ? '' : $options_html;
-$dynamic_placeholders['options_html_class'] =  empty($options_html) ? '' : ' '.$modx->getOption('options_html_class',$config,'options_html');
 
 // only used for cache level 2
 $ph_temporary_key_template = $modx->getOption('ph_temporary_key_template',$config,'[+[[+key]]+]');
 
-if ($cache != 2 || is_null($cached_output)) {
+if ($cache != 2 || !$already_cached) {
     // set the dynamic placholders
     if ($cache == 2) {
         $temporary_placeholders = $ffp->createTemporaryPlaceholders($dynamic_placeholders,$ph_temporary_key_template);
