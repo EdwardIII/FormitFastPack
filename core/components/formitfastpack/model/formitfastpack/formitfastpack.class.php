@@ -113,6 +113,39 @@ class FormitFastPack {
     }
 
     /**
+     * Generates an array of temporary placeholders
+     *
+     * @access public
+     * @param array $placeholders The array of placeholder keys and values (the keys are the important part)
+     * @param string $ph_key_template The template for the temporary placeholder - replaces '[[+key]]' with the actual placeholder key
+     * @return string The processed output.
+     */
+    public function createTemporaryPlaceholders(array $placeholders , $ph_key_template = '[+[[+key]]+]') {
+        $array = array();
+        foreach ($placeholders as $key => $value) {
+            $array[$key] = str_replace('[[+key]]',$key,$ph_key_template);
+        }
+        return $array;
+    }
+    /**
+     * Uses a str_replace function to process placeholders
+     *
+     * @access public
+     * @param string $input_text The text to process. Should have values in the form of value="$current_value".
+     * @param array $placeholders The array of placeholder keys and values
+     * @param string $ph_key_template The template for the temporary placeholder - replaces '[[+key]]' with the actual placeholder key
+     * @return string The processed output.
+     */
+    public function processPlaceholders($input_text, array $placeholders, $ph_key_template = '[+[[+key]]+]') {
+        $output = $input_text;
+        foreach ($placeholders as $key => $value) {
+            $ph_key = str_replace('[[+key]]',$key,$ph_key_template);
+            $output = str_replace($ph_key,$value,$output);
+        }
+        return $output;
+    }
+    
+    /**
      * Adds a marker (such as selected="selected") after a search string such as value="1" if it is found.
      * 
      *
