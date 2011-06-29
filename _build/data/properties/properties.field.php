@@ -39,6 +39,14 @@ $properties = array(
         'lexicon' => 'formitfastpack:properties',
     ),
     array(
+        'name' => 'outer_type',
+        'desc' => 'ffp_field_outer_type_desc',
+        'type' => 'textfield',
+        'options' => '',
+        'value' => 'default',
+        'lexicon' => 'formitfastpack:properties',
+    ),
+    array(
         'name' => 'prefix',
         'desc' => 'ffp_field_prefix_desc',
         'type' => 'textfield',
@@ -68,6 +76,14 @@ $properties = array(
         'type' => 'textfield',
         'options' => '',
         'value' => 'fieldTypesTpl',
+        'lexicon' => 'formitfastpack:properties',
+    ),
+    array(
+        'name' => 'delimiter_template',
+        'desc' => 'ffp_field_delimiter_template_desc',
+        'type' => 'textfield',
+        'options' => '',
+        'value' => '<!-- [[+type]] -->',
         'lexicon' => 'formitfastpack:properties',
     ),
     array(
@@ -111,11 +127,27 @@ $properties = array(
         'lexicon' => 'formitfastpack:properties',
     ),
     array(
+        'name' => 'current_value_class',
+        'desc' => 'ffp_field_current_value_class_desc',
+        'type' => 'textfield',
+        'options' => '',
+        'value' => 'current_value_class',
+        'lexicon' => 'formitfastpack:properties',
+    ),
+    array(
         'name' => 'to_placeholders',
         'desc' => 'ffp_field_to_placeholders_desc',
         'type' => 'combo-boolean',
         'options' => '',
         'value' => false,
+        'lexicon' => 'formitfastpack:properties',
+    ),
+    array(
+        'name' => 'cache',
+        'desc' => 'ffp_field_cache_desc',
+        'type' => 'textfield',
+        'options' => '',
+        'value' => 'auto',
         'lexicon' => 'formitfastpack:properties',
     ),
     array(

@@ -1,5 +1,15 @@
 ﻿Changelog for FormitFastPack.
 
+FormitFastPack 0.2 beta
+======================================
+- Revamped the caching. Most field types can now be called cached - [[!field]] - EXCEPT field types that need to be marked checked or selected (such as selects, radios, and checkboxes), which still need to be called uncached.
+- Speed gains to uncached field snippets.
+- Added usage tips.
+- added [[+current_value_class]] placeholder
+- added &delimiter_template parameter
+- added optional &outer_type parameter to allow splitting up the outer_tpl (e.g. to position the label differently)
+- renamed some "*_class" to "class_*" in the outer template to distinguish from dynamically-generated placeholders
+
 FormitFastPack 0.1.1 beta - 0.1.4 beta
 ======================================
 - added support for options and field_html generated from any element

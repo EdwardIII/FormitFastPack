@@ -1,5 +1,4 @@
-﻿
-<!-- text -->
+﻿<!-- text -->
   <input type="[[+type]]" name="[[+name]]" id="[[+name]]" value="[[+current_value]]" class="[[+class]][[+error_class]]" size="[[+size:default=`40`]]" />
 <!-- text -->
 
@@ -52,5 +51,7 @@
 
 <!-- bool -->
 <span class="boolDiv [[+class]]">
-<input type="[[+type]]" class="[[+type]]" value="[[+value]]" name="[[+name]][[+array:notempty=`[]`]]" id="[[+key]]"  /> 
-<label for="[[+key]]" class="[[+type]]" id="label[[+key]]">[[+label]]</label></span><!-- bool -->
+    <input type="[[+type]]" class="[[+type]]" value="[[+value]]" name="[[+name]][[+array:notempty=`[]`]]" id="[[+key]]"  /> 
+    <label for="[[+key]]" class="[[+type]]" id="label[[+key]]">[[+label]]</label>
+</span>
+<!-- bool -->

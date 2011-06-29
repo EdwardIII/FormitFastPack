@@ -117,6 +117,7 @@ class FormitFastPack {
 
     /**
      * Generates an array of temporary placeholders
+     * Used in level 2 caching
      *
      * @access public
      * @param array $placeholders The array of placeholder keys and values (the keys are the important part)
@@ -132,6 +133,7 @@ class FormitFastPack {
     }
     /**
      * Uses a str_replace function to process placeholders
+     * Used in level 2 caching
      *
      * @access public
      * @param string $input_text The text to process. Should have values in the form of value="$current_value".
@@ -139,7 +141,7 @@ class FormitFastPack {
      * @param string $ph_key_template The template for the temporary placeholder - replaces '[[+key]]' with the actual placeholder key
      * @return string The processed output.
      */
-    public function processPlaceholders($input_text, array $placeholders, $ph_key_template = '[+[[+key]]+]') {
+    public function processTemporaryPlaceholders($input_text, array $placeholders, $ph_key_template = '[+[[+key]]+]') {
         $output = $input_text;
         foreach ($placeholders as $key => $value) {
             $ph_key = str_replace('[[+key]]',$key,$ph_key_template);
@@ -195,32 +197,39 @@ class FormitFastPack {
      * @access public
      * @param string $name The name of the Chunk
      * @param array $properties The properties for the Chunk
+     * @param string $delimiter The delimiter to use for getting only part of the chunk
+     * @param array|string $search - If not empty, will str_replace the chunk content before processing with this as the search
+     * @param array|string $replace - The replacements for the str_replace
      * @return string The processed content of the Chunk
      */
-    public function getChunk($name,$properties = array(),$delimiter = 'none') {
+    public function getChunk($name,$properties = array(),$delimiter = 'none', $search = '', $replace = '') {
         $chunk = null;
-        if (!isset($this->chunks[$name][$delimiter])) {
+        $key = $name.md5($delimiter);
+        if (!isset($this->chunks[$key])) {
             if (!$this->modx->getOption('FormitFastPack.debug',null,false)) {
                 $chunk = $this->modx->getObject('modChunk',array('name' => $name));
             }
-
-            if (empty($chunk)) {
-                $chunk = $this->_getTplChunk($name);
-                if ($chunk == $name) return $name;
+            if (!empty($chunk)) {
+                $content = $chunk->getContent();
+            } else {
+                // get file-based chunk content
+                $content = $this->_getTplChunk($name);
+                if ($content == $name) return $name;
             }
             if ($delimiter != 'none') {
-                $content_full = $chunk->getContent();
-                $contentArray = explode($delimiter,$content_full);
-                $content_subset = $contentArray[1];
-                $chunk = $this->modx->newObject('modChunk');
-                $chunk->setContent($content_subset);
+                $contentArray = explode($delimiter,' '.$content);
+                $content = $contentArray[1];
             }
-            $this->chunks[$name][$delimiter] = $chunk->getContent();
+            $this->chunks[$key] = $content;
         } else {
-            $o = $this->chunks[$name][$delimiter];
-            $chunk = $this->modx->newObject('modChunk');
-            $chunk->setContent($o);
+            $content = $this->chunks[$key];
         }
+        if (!empty($search)) {
+            $content = str_replace($search,$replace,$content);
+        }
+        $chunk = $this->modx->newObject('modChunk');
+        $chunk->set('name',$key);
+        $chunk->setContent($content);
         $chunk->setCacheable(false);
         return $chunk->process($properties);
     }
@@ -234,16 +243,13 @@ class FormitFastPack {
      * false.
      */
     private function _getTplChunk($name,$suffix = '.chunk.tpl') {
-        $chunk = $name;
+        $o = $name;
         $suffix = $this->modx->getOption('suffix',$this->config,$suffix);
         $f = $this->config['chunks_path'].strtolower($name).$suffix;
         if ($name == 'optionscountries') {echo $f; die();}
         if (file_exists($f)) {
             $o = file_get_contents($f);
-            $chunk = $this->modx->newObject('modChunk');
-            $chunk->set('name',$name);
-            $chunk->setContent($o);
         }
-        return $chunk;
+        return $o;
     }
 }
